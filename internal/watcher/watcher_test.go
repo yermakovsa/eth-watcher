@@ -7,28 +7,28 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/yermakovsa/alchemyws"
 	"github.com/yermakovsa/eth-watcher/internal/aggregator"
 	"github.com/yermakovsa/eth-watcher/internal/watcher"
-	"github.com/yermakovsa/eth-watcher/pkg/alchemy"
 )
 
 type MockAlchemyClient struct {
-	SubscribeMinedTransactionsFunc func(opts alchemy.MinedTxOptions) (<-chan alchemy.MinedTxEvent, error)
-	CloseFunc                      func() error
+	SubscribeMinedFunc func(opts alchemyws.MinedTxOptions) (<-chan alchemyws.MinedTxEvent, error)
+	CloseFunc          func() error
 }
 
-func (m *MockAlchemyClient) SubscribeMinedTransactions(opts alchemy.MinedTxOptions) (<-chan alchemy.MinedTxEvent, error) {
-	return m.SubscribeMinedTransactionsFunc(opts)
+func (m *MockAlchemyClient) SubscribeMined(opts alchemyws.MinedTxOptions) (<-chan alchemyws.MinedTxEvent, error) {
+	return m.SubscribeMinedFunc(opts)
 }
 func (m *MockAlchemyClient) Close() error {
 	return m.CloseFunc()
 }
 
 type MockAggregator struct {
-	ProcessFunc func(event alchemy.MinedTxEvent, direction aggregator.Direction)
+	ProcessFunc func(event alchemyws.MinedTxEvent, direction aggregator.Direction)
 }
 
-func (m *MockAggregator) Process(event alchemy.MinedTxEvent, direction aggregator.Direction) {
+func (m *MockAggregator) Process(event alchemyws.MinedTxEvent, direction aggregator.Direction) {
 	if m.ProcessFunc != nil {
 		m.ProcessFunc(event, direction)
 	}
@@ -38,21 +38,21 @@ func TestWatcher_Start_ProcessesFromWalletEventAndStops(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	eventReceived := make(chan alchemy.MinedTxEvent, 1)
+	eventReceived := make(chan alchemyws.MinedTxEvent, 1)
 	eventDirectionReceived := make(chan aggregator.Direction, 1)
 
 	mockAggregator := &MockAggregator{
-		ProcessFunc: func(e alchemy.MinedTxEvent, direction aggregator.Direction) {
+		ProcessFunc: func(e alchemyws.MinedTxEvent, direction aggregator.Direction) {
 			eventReceived <- e
 			eventDirectionReceived <- direction
 		},
 	}
 
-	events := make(chan alchemy.MinedTxEvent, 1)
-	events <- alchemy.MinedTxEvent{Transaction: alchemy.MinedTransaction{From: "0xabc"}}
+	events := make(chan alchemyws.MinedTxEvent, 1)
+	events <- alchemyws.MinedTxEvent{Transaction: alchemyws.Transaction{From: "0xabc"}}
 
 	mockClient := &MockAlchemyClient{
-		SubscribeMinedTransactionsFunc: func(opts alchemy.MinedTxOptions) (<-chan alchemy.MinedTxEvent, error) {
+		SubscribeMinedFunc: func(opts alchemyws.MinedTxOptions) (<-chan alchemyws.MinedTxEvent, error) {
 			return events, nil
 		},
 		CloseFunc: func() error { return nil },
@@ -84,21 +84,21 @@ func TestWatcher_Start_ProcessesToWalletEventAndStops(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	eventReceived := make(chan alchemy.MinedTxEvent, 1)
+	eventReceived := make(chan alchemyws.MinedTxEvent, 1)
 	eventDirectionReceived := make(chan aggregator.Direction, 1)
 
 	mockAggregator := &MockAggregator{
-		ProcessFunc: func(e alchemy.MinedTxEvent, direction aggregator.Direction) {
+		ProcessFunc: func(e alchemyws.MinedTxEvent, direction aggregator.Direction) {
 			eventReceived <- e
 			eventDirectionReceived <- direction
 		},
 	}
 
-	events := make(chan alchemy.MinedTxEvent, 1)
-	events <- alchemy.MinedTxEvent{Transaction: alchemy.MinedTransaction{To: "0xabc"}}
+	events := make(chan alchemyws.MinedTxEvent, 1)
+	events <- alchemyws.MinedTxEvent{Transaction: alchemyws.Transaction{To: "0xabc"}}
 
 	mockClient := &MockAlchemyClient{
-		SubscribeMinedTransactionsFunc: func(opts alchemy.MinedTxOptions) (<-chan alchemy.MinedTxEvent, error) {
+		SubscribeMinedFunc: func(opts alchemyws.MinedTxOptions) (<-chan alchemyws.MinedTxEvent, error) {
 			return events, nil
 		},
 		CloseFunc: func() error { return nil },
@@ -128,7 +128,7 @@ func TestWatcher_Start_ProcessesToWalletEventAndStops(t *testing.T) {
 
 func TestWatcher_Start_SubscriptionFails(t *testing.T) {
 	mockClient := &MockAlchemyClient{
-		SubscribeMinedTransactionsFunc: func(opts alchemy.MinedTxOptions) (<-chan alchemy.MinedTxEvent, error) {
+		SubscribeMinedFunc: func(opts alchemyws.MinedTxOptions) (<-chan alchemyws.MinedTxEvent, error) {
 			return nil, errors.New("subscription failed")
 		},
 		CloseFunc: func() error { return nil },
@@ -150,8 +150,8 @@ func TestWatcher_Stop_ClosesClient(t *testing.T) {
 	closed := false
 
 	mockClient := &MockAlchemyClient{
-		SubscribeMinedTransactionsFunc: func(opts alchemy.MinedTxOptions) (<-chan alchemy.MinedTxEvent, error) {
-			return make(chan alchemy.MinedTxEvent), nil
+		SubscribeMinedFunc: func(opts alchemyws.MinedTxOptions) (<-chan alchemyws.MinedTxEvent, error) {
+			return make(chan alchemyws.MinedTxEvent), nil
 		},
 		CloseFunc: func() error {
 			closed = true

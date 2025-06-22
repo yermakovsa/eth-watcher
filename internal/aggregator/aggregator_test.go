@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yermakovsa/eth-watcher/pkg/alchemy"
+	"github.com/yermakovsa/alchemyws"
 )
 
 type MockNotifier struct {
@@ -38,8 +38,8 @@ func TestAggregator_TriggerAlertWhenThresholdExceededFromWallet(t *testing.T) {
 
 	agg := NewAggregator(ctx, notifier, 1.0, 10*time.Second, 5*time.Second)
 
-	tx := alchemy.MinedTxEvent{
-		Transaction: alchemy.MinedTransaction{
+	tx := alchemyws.MinedTxEvent{
+		Transaction: alchemyws.Transaction{
 			Hash:  "0x123",
 			From:  "0xabc",
 			Value: "0xde0b6b3a7640000", // 1 ETH
@@ -65,8 +65,8 @@ func TestAggregator_TriggerAlertWhenThresholdExceededToWallet(t *testing.T) {
 
 	agg := NewAggregator(ctx, notifier, 1.0, 10*time.Second, 5*time.Second)
 
-	tx := alchemy.MinedTxEvent{
-		Transaction: alchemy.MinedTransaction{
+	tx := alchemyws.MinedTxEvent{
+		Transaction: alchemyws.Transaction{
 			Hash:  "0x123",
 			To:    "0xabc",
 			Value: "0xde0b6b3a7640000", // 1 ETH
@@ -92,8 +92,8 @@ func TestAggregator_DoesNotTriggerAlertBelowThreshold(t *testing.T) {
 
 	agg := NewAggregator(ctx, notifier, 2.0, 10*time.Second, 5*time.Second)
 
-	tx := alchemy.MinedTxEvent{
-		Transaction: alchemy.MinedTransaction{
+	tx := alchemyws.MinedTxEvent{
+		Transaction: alchemyws.Transaction{
 			Hash:  "0x456",
 			From:  "0xabc",
 			Value: "0xde0b6b3a7640000", // 1 ETH
@@ -116,8 +116,8 @@ func TestAggregator_CooldownPreventsMultipleAlerts(t *testing.T) {
 
 	agg := NewAggregator(ctx, notifier, 1.0, 10*time.Second, 1*time.Second)
 
-	tx := alchemy.MinedTxEvent{
-		Transaction: alchemy.MinedTransaction{
+	tx := alchemyws.MinedTxEvent{
+		Transaction: alchemyws.Transaction{
 			Hash:  "0x789",
 			From:  "0xabc",
 			Value: "0xde0b6b3a7640000", // 1 ETH

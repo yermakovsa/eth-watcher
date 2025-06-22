@@ -5,17 +5,17 @@ import (
 	"log"
 	"strings"
 
+	"github.com/yermakovsa/alchemyws"
 	"github.com/yermakovsa/eth-watcher/internal/aggregator"
-	"github.com/yermakovsa/eth-watcher/pkg/alchemy"
 )
 
 type AlchemyClient interface {
-	SubscribeMinedTransactions(opts alchemy.MinedTxOptions) (<-chan alchemy.MinedTxEvent, error)
+	SubscribeMined(opts alchemyws.MinedTxOptions) (<-chan alchemyws.MinedTxEvent, error)
 	Close() error
 }
 
 type Aggregator interface {
-	Process(tx alchemy.MinedTxEvent, direction aggregator.Direction)
+	Process(tx alchemyws.MinedTxEvent, direction aggregator.Direction)
 }
 
 type Watcher struct {
@@ -41,15 +41,15 @@ func NewWatcher(ctx context.Context, client AlchemyClient, from []string, to []s
 
 // Start begins watching for mined transactions
 func (w *Watcher) Start() error {
-	var filters []alchemy.AddressFilter
+	var filters []alchemyws.AddressFilter
 	for wallet := range w.walletsFrom {
-		filters = append(filters, alchemy.AddressFilter{From: wallet})
+		filters = append(filters, alchemyws.AddressFilter{From: wallet})
 	}
 	for wallet := range w.walletsTo {
-		filters = append(filters, alchemy.AddressFilter{To: wallet})
+		filters = append(filters, alchemyws.AddressFilter{To: wallet})
 	}
 
-	events, err := w.client.SubscribeMinedTransactions(alchemy.MinedTxOptions{
+	events, err := w.client.SubscribeMined(alchemyws.MinedTxOptions{
 		Addresses:      filters,
 		IncludeRemoved: false,
 		HashesOnly:     false,
@@ -72,7 +72,7 @@ func (w *Watcher) Stop() {
 	_ = w.client.Close()
 }
 
-func (w *Watcher) watch(events <-chan alchemy.MinedTxEvent) {
+func (w *Watcher) watch(events <-chan alchemyws.MinedTxEvent) {
 	for {
 		select {
 		case <-w.ctx.Done():
