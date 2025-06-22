@@ -11,11 +11,11 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/mymmrac/telego"
+	"github.com/yermakovsa/alchemyws"
 	"github.com/yermakovsa/eth-watcher/internal/aggregator"
 	"github.com/yermakovsa/eth-watcher/internal/config"
 	"github.com/yermakovsa/eth-watcher/internal/notifier"
 	"github.com/yermakovsa/eth-watcher/internal/watcher"
-	"github.com/yermakovsa/eth-watcher/pkg/alchemy"
 )
 
 func main() {
@@ -45,7 +45,7 @@ func main() {
 		time.Duration(cfg.CooldownSeconds)*time.Second,
 	)
 
-	client, err := alchemy.NewAlchemyClient(cfg.AlchemyAPIKey)
+	client, err := alchemyws.NewAlchemyClient(cfg.AlchemyAPIKey, nil)
 	if err != nil {
 		log.Fatalf("[Main] Failed to initialize Alchemy client: %v", err)
 	}

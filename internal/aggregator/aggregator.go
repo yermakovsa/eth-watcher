@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/yermakovsa/alchemyws"
 	"github.com/yermakovsa/eth-watcher/internal/notifier"
-	"github.com/yermakovsa/eth-watcher/pkg/alchemy"
 )
 
 type Direction string
@@ -56,7 +56,7 @@ func NewAggregator(ctx context.Context, notifier notifier.Notifier, threshold fl
 }
 
 // Process adds a transaction to the aggregation buffer and triggers alert if needed.
-func (a *Aggregator) Process(tx alchemy.MinedTxEvent, direction Direction) {
+func (a *Aggregator) Process(tx alchemyws.MinedTxEvent, direction Direction) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
